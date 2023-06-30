@@ -1,0 +1,9 @@
+syntax = "proto3";
+
+message PrimesRequest {
+    int64 number = 1;
+}
+
+message PrimesResponse {
+    int64 result = 1;
+}
