@@ -1,3 +1,4 @@
+const fs = require('fs');
 const grpc = require('@grpc/grpc-js');
 const { GreetServiceClient } = require('../proto/greet_grpc_pb');
 const { GreetRequest } = require('../proto/greet_pb');
@@ -72,14 +73,40 @@ function doGreetEveryone(client) {
     call.end();
 }
 
+function doGreetWithDeadline(client, ms) {
+    console.log('doGreetWithDeadline is Invoked');
+    const req = new GreetRequest()
+        .setFirstName("Akshay");
+
+    client.greetWithDeadline(req, {
+        deadline: new Date(Date.now() + ms)
+    }, (err, res) => {
+        if(err) {
+            return console.log('err', err);
+        }
+
+        console.log(`GreetWithDeadline: ${res.getResult()}`);
+    })
+    
+}
+
 function main() {
-    const creds = grpc.ChannelCredentials.createInsecure();
+    const tls = true;
+    let creds;
+    if(tls){
+        const rootCert = fs.readFileSync('./ssl/ca.crt');
+        creds = grpc.ChannelCredentials.createSsl(rootCert);
+    } else {
+        creds = grpc.ChannelCredentials.createInsecure();
+    } 
     const client = new GreetServiceClient('localhost:50051', creds);
 
-    // doGreet(client);
+    doGreet(client);
     // doGreetManyTimes(client);
     // doLongGreet(client);
-    doGreetEveryone(client);
+    // doGreetEveryone(client);
+    // doGreetWithDeadline(client, 5000);
+    // doGreetWithDeadline(client, 1000); // error deadline
     client.close();
 }
 
